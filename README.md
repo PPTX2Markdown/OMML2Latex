@@ -24,7 +24,8 @@ ECMA-376 문서를 참고하여 OMML의 구조를 파악하였으며, 프로젝�
 - `omml2latex_example.py`: PPTX 파일을 파싱하여 OMML 수식을 찾아내고, 파서를 거쳐 변환된 수식들을 마크다운(MD) 포맷으로 출력하는 예제 스크립트
 - `pyproject.toml`: `pip` / `uv` 설치용 메타데이터
 - `shared-math-strict.rnc` / `shared-math-strict.xsd` / `shared-math-transitional.xsd`: 파서 작성 시 참고한 ECMA-376 OMML 스키마 문서들
-- MS Office 문서(`.docx`, `.pptx` 등) 내부의 OMML을 직접 순회하며 변환할 수도 있습니다.
+
+MS Office 문서(`.docx`, `.pptx` 등) 내부의 OMML을 직접 순회하여 `convert_omml()`에 전달하는 방식으로 사용할 수 있습니다.
 
 ## 변환 결과 예시
 
@@ -68,7 +69,7 @@ python omml2latex_example.py sample.pptx
 python omml2latex_example.py sample.pptx output.md
 ```
 
-### 2. `omml2latex.py` 모듈 직접 사용 (API)
+### 2. `omml2latex` 패키지 직접 사용 (API)
 
 MS Office 문서(`.docx`, `.pptx` 등) 내부의 XML(OOXML 규격)을 `xml.etree.ElementTree`로 읽어들인 뒤, OMML 루트가 파악되면 모듈에 직접 전달하여 변환시킬 수 있습니다.
 
@@ -96,17 +97,9 @@ print(latex_output)
 # 출력 결과: $\mathbf{\mathbb{R \alpha \infty }}$
 ```
 
-별도 예제 스크립트로는 `convert_pptx_math.py`를 참고할 수 있습니다.
-이 스크립트는 패키지의 일부 public interface는 아니고, 샘플/실험용 유틸리티입니다.
-
-````
-
 ## Public API
 
-- `parse_omml_to_latex(node)`: `xml.etree.ElementTree.Element` 입력을 LaTeX 문자열로 변환
-- `convert_omml_to_latex(node)`: 위 함수의 alias
-- `parse_omml_xml(xml)`: OMML XML 문자열을 바로 변환
-
+- `convert_omml(node)`: `xml.etree.ElementTree.Element` 형태의 `m:oMath`, `m:oMathPara`, `m:mathPr` 루트를 받아 변환 결과를 반환
 
 ## 설치
 
@@ -114,7 +107,7 @@ print(latex_output)
 
 ```bash
 uv pip install -e .
-````
+```
 
 일반 설치:
 
@@ -136,27 +129,3 @@ dependencies = [
 ```
 
 `uv`를 쓰는 프로젝트에서도 동일하게 Git dependency 형태로 추가할 수 있습니다.
-
-## 사용 방법
-
-기본 사용 방식은 다른 Python 프로젝트에서 라이브러리로 import해서 OMML XML 문자열이나 XML element를 LaTeX로 변환하는 것입니다.
-
-문자열 XML이 있다면:
-
-```python
-from omml2latex import parse_omml_xml
-
-latex = parse_omml_xml(
-    '<m:oMath xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math">'
-    "<m:r><m:t>x</m:t></m:r>"
-    "</m:oMath>"
-)
-```
-
-이미 `xml.etree.ElementTree.Element` 형태의 OMML 노드를 갖고 있다면:
-
-```python
-from omml2latex import parse_omml_to_latex
-
-latex = parse_omml_to_latex(omml_element)
-```

@@ -1145,7 +1145,8 @@ def parse_m_CT_Acc(node):
         '\u20DC': '\\ddddot',           # ⃜ COMBINING FOUR DOTS ABOVE
         '\u20E1': '\\overleftrightarrow', # ⃡ COMBINING LEFT RIGHT ARROW ABOVE
     }
-    return f"{acc_map.get(chr_val, '\\hat')}{{{e}}}"
+    accent = acc_map.get(chr_val, "\\hat")
+    return f"{accent}{{{e}}}"
 
 def parse_m_CT_Bar(node):
     barPr = parse_m_CT_BarPr(_get_child(node, 'barPr'))
