@@ -16,35 +16,43 @@ ECMA-376 문서를 참고하여 OMML의 구조를 파악하였으며, 프로젝�
 - **재귀적 하향 파서 구조**: OMML의 계층적 트리 구조(`oMath`, `f`(분수), `r`(런), `t`(텍스트) 등)를 재귀적으로 순회하여 LaTeX 문자열로 조합
 - **유니코드 심볼 매핑 지원**: 수학 알파벳(Math Italics, Script, Fraktur 등) 및 방대한 양의 특수 수학 기호(예: `α` -> `\alpha`)를 적절한 LaTeX 매크로로 식별 및 자동 치환
 
-## 파일 구조
+## 패키지 구조
 
-- `omml2latex.py`: OMML 파싱 및 LaTeX 변환 핵심 파서
+- `omml2latex/`: import 가능한 패키지 본체
+- `omml2latex/__init__.py`: 얇은 공개 API 레이어
+- `omml2latex/_parser.py`: OMML 파싱 및 LaTeX 변환 핵심 구현
 - `omml2latex_example.py`: PPTX 파일을 파싱하여 OMML 수식을 찾아내고, 파서를 거쳐 변환된 수식들을 마크다운(MD) 포맷으로 출력하는 예제 스크립트
+- `pyproject.toml`: `pip` / `uv` 설치용 메타데이터
 - `shared-math-strict.rnc` / `shared-math-strict.xsd` / `shared-math-transitional.xsd`: 파서 작성 시 참고한 ECMA-376 OMML 스키마 문서들
+- MS Office 문서(`.docx`, `.pptx` 등) 내부의 OMML을 직접 순회하며 변환할 수도 있습니다.
 
 ## 변환 결과 예시
 
 좌측은 실제 파워포인트 슬라이드의 원본 수식이고, 우측은 추출기를 통해 변환된 후 마크다운에서 렌더링된 KaTeX 결과물입니다.
 
 ### Slide 1: PPTX 수식 입력
-원본 PPT | 추출된 LaTeX 렌더링
-:---:|:---:
-![Slide 1 원본](sample/slide1.png) | ![Slide 1 결과](sample/sample_result/slide1.png)
+
+|              원본 PPT              |               추출된 LaTeX 렌더링                |
+| :--------------------------------: | :----------------------------------------------: |
+| ![Slide 1 원본](sample/slide1.png) | ![Slide 1 결과](sample/sample_result/slide1.png) |
 
 ### Slide 2: PPTX 수식 (수식 -> latex로 pptx에서 변환한 경우)
-원본 PPT | 추출된 LaTeX 렌더링
-:---:|:---:
-![Slide 2 원본](sample/slide2.png) | ![Slide 2 결과](sample/sample_result/slide2.png)
+
+|              원본 PPT              |               추출된 LaTeX 렌더링                |
+| :--------------------------------: | :----------------------------------------------: |
+| ![Slide 2 원본](sample/slide2.png) | ![Slide 2 결과](sample/sample_result/slide2.png) |
 
 ### Slide 3: 다양한 수학 기호와 단위
-원본 PPT | 추출된 LaTeX 렌더링
-:---:|:---:
-![Slide 3 원본](sample/slide3.png) | ![Slide 3 결과 1](sample/sample_result/slide3-1.png)<br>![Slide 3 결과 2](sample/sample_result/slide3-2.png)
+
+|              원본 PPT              |                                             추출된 LaTeX 렌더링                                              |
+| :--------------------------------: | :----------------------------------------------------------------------------------------------------------: |
+| ![Slide 3 원본](sample/slide3.png) | ![Slide 3 결과 1](sample/sample_result/slide3-1.png)<br>![Slide 3 결과 2](sample/sample_result/slide3-2.png) |
 
 ### Slide 4: 대형 연산자와 행렬 구성
-원본 PPT | 추출된 LaTeX 렌더링
-:---:|:---:
-![Slide 4 원본](sample/slide4.png) | ![Slide 4 결과 1](sample/sample_result/slide4-1.png)<br>![Slide 4 결과 2](sample/sample_result/slide4-2.png)
+
+|              원본 PPT              |                                             추출된 LaTeX 렌더링                                              |
+| :--------------------------------: | :----------------------------------------------------------------------------------------------------------: |
+| ![Slide 4 원본](sample/slide4.png) | ![Slide 4 결과 1](sample/sample_result/slide4-1.png)<br>![Slide 4 결과 2](sample/sample_result/slide4-2.png) |
 
 ## 사용 방법
 
@@ -86,4 +94,69 @@ latex_output = convert_omml(root_node)
 
 print(latex_output)
 # 출력 결과: $\mathbf{\mathbb{R \alpha \infty }}$
+```
+
+별도 예제 스크립트로는 `convert_pptx_math.py`를 참고할 수 있습니다.
+이 스크립트는 패키지의 일부 public interface는 아니고, 샘플/실험용 유틸리티입니다.
+
+````
+
+## Public API
+
+- `parse_omml_to_latex(node)`: `xml.etree.ElementTree.Element` 입력을 LaTeX 문자열로 변환
+- `convert_omml_to_latex(node)`: 위 함수의 alias
+- `parse_omml_xml(xml)`: OMML XML 문자열을 바로 변환
+
+
+## 설치
+
+로컬 개발용 editable 설치:
+
+```bash
+uv pip install -e .
+````
+
+일반 설치:
+
+```bash
+pip install .
+```
+
+Git dependency 설치:
+
+```bash
+pip install "git+https://github.com/<OWNER>/OMML2Latex.git"
+```
+
+```toml
+[project]
+dependencies = [
+  "omml2latex @ git+https://github.com/<OWNER>/OMML2Latex.git",
+]
+```
+
+`uv`를 쓰는 프로젝트에서도 동일하게 Git dependency 형태로 추가할 수 있습니다.
+
+## 사용 방법
+
+기본 사용 방식은 다른 Python 프로젝트에서 라이브러리로 import해서 OMML XML 문자열이나 XML element를 LaTeX로 변환하는 것입니다.
+
+문자열 XML이 있다면:
+
+```python
+from omml2latex import parse_omml_xml
+
+latex = parse_omml_xml(
+    '<m:oMath xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math">'
+    "<m:r><m:t>x</m:t></m:r>"
+    "</m:oMath>"
+)
+```
+
+이미 `xml.etree.ElementTree.Element` 형태의 OMML 노드를 갖고 있다면:
+
+```python
+from omml2latex import parse_omml_to_latex
+
+latex = parse_omml_to_latex(omml_element)
 ```
