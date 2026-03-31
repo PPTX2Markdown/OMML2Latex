@@ -1,4 +1,19 @@
+"""Convert OMML (Office Math Markup Language) elements into LaTeX strings."""
+
+from __future__ import annotations
+
 import xml.etree.ElementTree as ET
+
+__version__ = "0.1.0"
+__all__ = [
+    "parse_omml_to_latex",
+    "convert_omml_to_latex",
+    "parse_omml_xml",
+    "get_tag",
+    "get_child",
+    "get_children",
+    "get_val",
+]
 
 # ==============================================================================
 # Helper / Utility
@@ -560,7 +575,8 @@ def parse_m_CT_Acc(node):
     e = parse_m_CT_OMathArg(get_child(node, 'e'))
     
     acc_map = {'\u0302': '\\hat', '\u0300': '\\grave', '\u0303': '\\tilde', '\u0304': '\\bar', '\u0307': '\\dot', '\u0308': '\\ddot', '\u20D7': '\\vec'}
-    return f"{acc_map.get(chr_val, '\\hat')}{{{e}}}"
+    acc_cmd = acc_map.get(chr_val, '\\hat')
+    return f"{acc_cmd}{{{e}}}"
 
 def parse_m_CT_Bar(node):
     barPr = parse_m_CT_BarPr(get_child(node, 'barPr'))
@@ -668,6 +684,16 @@ def parse_omml_to_latex(node):
     elif tag == 'oMathPara': return parse_m_CT_OMathPara(node)
     elif tag == 'oMath': return parse_m_CT_OMath(node)
     return ""
+
+
+def convert_omml_to_latex(node):
+    """Public alias for converting an OMML element into LaTeX."""
+    return parse_omml_to_latex(node)
+
+
+def parse_omml_xml(xml: str):
+    """Parse an OMML XML string and convert its root element into LaTeX."""
+    return parse_omml_to_latex(ET.fromstring(xml))
 
 if __name__ == "__main__":
     sample_xml = """<m:oMathPara xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math">

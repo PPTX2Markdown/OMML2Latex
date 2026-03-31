@@ -1,6 +1,6 @@
 # OMML2LaTeX
 
-OMML (Office Math Markup Language) 수식을 LaTeX 코드로 변환해주는 파이썬 스크립트(`omml2latex.py`)입니다.
+OMML (Office Math Markup Language) 수식을 LaTeX 코드로 변환해주는 설치 가능한 Python 패키지입니다.
 
 ## 개요
 
@@ -16,53 +16,111 @@ ECMA-376 문서를 참고하여 OMML의 구조를 파악하였으며, 프로젝�
 - **재귀적 하향 파서 구조**: OMML의 계층적 트리 구조(`omath`, `f`(분수), `r`(런), `t`(텍스트) 등)를 재귀적으로 순회하여 LaTeX 문자열로 조합
 - **유니코드 심볼 매핑 지원**: 그리스 문자 및 다양한 수학 기호(예: `α` -> `\alpha`)를 적절한 LaTeX 매크로로 자동 치환
 
-## 파일 구조
+## 패키지 구조
 
-- `omml2latex.py`: OMML 파싱 및 LaTeX 변환 핵심 로직
+- `omml2latex/`: import 가능한 패키지 본체
+- `omml2latex/__init__.py`: 얇은 공개 API 레이어
+- `omml2latex/_parser.py`: OMML 파싱 및 LaTeX 변환 핵심 구현
+- `pyproject.toml`: `pip` / `uv` 설치용 메타데이터
 - `shared-math-strict.rnc` / `shared-math-strict.xsd` / `shared-math-transitional.xsd`: 파서 작성 시 참고한 ECMA-376 OMML 스키마 문서들
+
+## 설치
+
+로컬 개발용 editable 설치:
+
+```bash
+uv pip install -e .
+```
+
+일반 설치:
+
+```bash
+pip install .
+```
+
+Git dependency 설치:
+
+```bash
+pip install "git+https://github.com/<OWNER>/OMML2Latex.git"
+```
+
+```toml
+[project]
+dependencies = [
+  "omml2latex @ git+https://github.com/<OWNER>/OMML2Latex.git",
+]
+```
+
+`uv`를 쓰는 프로젝트에서도 동일하게 Git dependency 형태로 추가할 수 있습니다.
 
 ## 사용 방법
 
-이 스크립트는 MS Office 문서(`.docx`, `.pptx` 등) 내부에 포함된 XML 형식의 수식 데이터(OMML)를 추출하여 변환할 때 사용할 수 있습니다. MS Office 문서는 실제로는 ZIP 압축 파일(OOXML 규격)이므로, `zipfile` 모듈 등을 이용해 내부 XML(`slide1.xml`, `document.xml` 등)을 읽어들인 뒤 루트부터 순회하며 변환합니다.
+기본 사용 방식은 다른 Python 프로젝트에서 라이브러리로 import해서 OMML XML 문자열이나 XML element를 LaTeX로 변환하는 것입니다.
 
-다음은 파워포인트(`.pptx`) 파일에서 슬라이드 내부의 수식을 찾아 LaTeX로 변환하는 개념적인 사용 예시입니다.
+문자열 XML이 있다면:
+
+```python
+from omml2latex import parse_omml_xml
+
+latex = parse_omml_xml(
+    '<m:oMath xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math">'
+    "<m:r><m:t>x</m:t></m:r>"
+    "</m:oMath>"
+)
+```
+
+이미 `xml.etree.ElementTree.Element` 형태의 OMML 노드를 갖고 있다면:
+
+```python
+from omml2latex import parse_omml_to_latex
+
+latex = parse_omml_to_latex(omml_element)
+```
+
+## PPTX 연동 예시
+
+MS Office 문서(`.docx`, `.pptx` 등) 내부의 OMML을 직접 순회하며 변환할 수도 있습니다.
 
 ```python
 import zipfile
 import xml.etree.ElementTree as ET
-from omml2latex import parse_omml_to_latex, get_tag
+
+from omml2latex import parse_omml_to_latex
+
 
 def extract_math(element):
-    """
-    재귀적으로 XML 트리를 순회하면서 수식 컴포넌트(OMML)를 찾아 변환합니다.
-    """
-    tag = get_tag(element)
+    tag = element.tag.split("}")[-1]
 
-    # 1. 수식 문단 (oMathPara - 블록 수식) 처리
     if tag == "oMathPara":
-        latex = parse_omml_to_latex(element)
-        print("블록 수식:\n", latex)
-        return  # 자식 oMath 탐색 방지를 위해 반환
-
-    # 2. 인라인 수식 (oMath) 처리
-    elif tag == "oMath":
-        latex = parse_omml_to_latex(element)
-        print("인라인 수식:\n", f"$${latex}$$")
+        print(parse_omml_to_latex(element))
         return
 
-    # 수식 요소가 아니면 자식 노드들을 계속 탐색
+    if tag == "oMath":
+        print(parse_omml_to_latex(element))
+        return
+
     for child in element:
         extract_math(child)
 
-# .pptx 파일 압축 해제 및 파싱
-with zipfile.ZipFile("mathematicalExpression.pptx", 'r') as z:
-    # ppt 내의 슬라이드 원본 xml 파일만 필터링
-    slides = [f for f in z.namelist() if f.startswith("ppt/slides/slide") and f.endswith(".xml")]
+
+with zipfile.ZipFile("mathematicalExpression.pptx", "r") as zf:
+    slides = [
+        name
+        for name in zf.namelist()
+        if name.startswith("ppt/slides/slide") and name.endswith(".xml")
+    ]
 
     for slide in sorted(slides):
-        xml_data = z.read(slide)
-        root = ET.fromstring(xml_data)
-
-        # 수식 추출 및 LaTeX 변환 실행
+        root = ET.fromstring(zf.read(slide))
         extract_math(root)
 ```
+
+별도 예제 스크립트로는 `convert_pptx_math.py`를 참고할 수 있습니다.
+이 스크립트는 패키지의 일부 public interface는 아니고, 샘플/실험용 유틸리티입니다.
+```
+
+## Public API
+
+- `parse_omml_to_latex(node)`: `xml.etree.ElementTree.Element` 입력을 LaTeX 문자열로 변환
+- `convert_omml_to_latex(node)`: 위 함수의 alias
+- `parse_omml_xml(xml)`: OMML XML 문자열을 바로 변환
