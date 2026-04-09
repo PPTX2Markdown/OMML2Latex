@@ -16,9 +16,17 @@ ECMA-376 문서를 참고하여 OMML의 구조를 파악하였으며, 프로젝�
 - **재귀적 하향 파서 구조**: OMML의 계층적 트리 구조(`oMath`, `f`(분수), `r`(런), `t`(텍스트) 등)를 재귀적으로 순회하여 LaTeX 문자열로 조합
 - **유니코드 심볼 매핑 지원**: 수학 알파벳(Math Italics, Script, Fraktur 등) 및 방대한 양의 특수 수학 기호(예: `α` -> `\alpha`)를 적절한 LaTeX 매크로로 식별 및 자동 치환
 
+## 설치
+
+```bash
+pip install omml2latex
+```
+
 ## 파일 구조
 
-- `omml2latex.py`: OMML 파싱 및 LaTeX 변환 핵심 파서
+- `omml2latex/`: import 가능한 패키지 본체
+- `omml2latex/__init__.py`: 공개 API (`convert_omml`)
+- `omml2latex/_parser.py`: OMML 파싱 및 LaTeX 변환 핵심 구현
 - `omml2latex_example.py`: PPTX 파일을 파싱하여 OMML 수식을 찾아내고, 파서를 거쳐 변환된 수식들을 마크다운(MD) 포맷으로 출력하는 예제 스크립트
 - `shared-math-strict.rnc` / `shared-math-strict.xsd` / `shared-math-transitional.xsd`: 파서 작성 시 참고한 ECMA-376 OMML 스키마 문서들
 
@@ -60,7 +68,7 @@ python omml2latex_example.py sample.pptx
 python omml2latex_example.py sample.pptx output.md
 ```
 
-### 2. `omml2latex.py` 모듈 직접 사용 (API)
+### 2. `omml2latex` 패키지 직접 사용 (API)
 
 MS Office 문서(`.docx`, `.pptx` 등) 내부의 XML(OOXML 규격)을 `xml.etree.ElementTree`로 읽어들인 뒤, OMML 루트가 파악되면 모듈에 직접 전달하여 변환시킬 수 있습니다.
 

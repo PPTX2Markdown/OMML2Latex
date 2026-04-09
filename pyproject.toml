@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "omml2latex"
 version = "0.1.0"
 description = "Convert OMML (Office Math Markup Language) elements into LaTeX."
-readme = "README.md"
+readme = "README_pypi.md"
 requires-python = ">=3.9"
 license = { file = "LICENSE" }
 authors = [

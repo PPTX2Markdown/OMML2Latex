@@ -1297,15 +1297,15 @@ def parse_m_oMath(node):
     oMathPara 내부에서 oMath 내용을 가져올 때는 parse_m_CT_OMath를 직접 호출한다."""
     return f"${parse_m_CT_OMath(node)}$"
 
-def convert_omml(node):
-    """OMML 루트 노드 → KaTeX-compatible LaTeX math 문자열 진입점.
+def convert_omml(node: ET.Element) -> str:
+    """Convert an OMML root element to a KaTeX-compatible LaTeX string.
 
-    oMathPara: 독립 디스플레이 수식 단락 → $$...$$  (parse_m_CT_OMathPara 내부 처리)
-    oMath:     인라인 수식 (단락 안에 단독 등장) → $...$
-               - oMathPara 안에서 호출되는 parse_m_CT_OMath은 내용만 반환하므로
-                 oMathPara → $$\n{content}\n$$ 에서 중첩되지 않는다.
-               - 여기서 직접 호출되는 경우는 항상 인라인 문맥이므로 $...$ 가 맞다.
-    mathPr:    수식 전역 설정 → LaTeX 출력 없음 (설정값만 파싱)
+    Args:
+        node: An ``m:oMath``, ``m:oMathPara``, or ``m:mathPr`` ``ET.Element``.
+
+    Returns:
+        LaTeX math string. ``m:oMathPara`` is wrapped in ``$$...$$`` (display),
+        ``m:oMath`` in ``$...$`` (inline), and ``m:mathPr`` returns an empty string.
     """
     tag = _get_tag(node)
     if tag == 'mathPr':    return parse_m_CT_MathPr_Root(node)
