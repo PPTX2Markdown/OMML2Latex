@@ -33,6 +33,17 @@ print(convert_omml(root))
 # $\mathbf{\mathbb{R \alpha \infty }}$
 ```
 
+## CLI
+
+Extract all equations from a `.pptx` or `.docx` file:
+
+```bash
+omml2latex input.pptx                  # print equations to stdout
+omml2latex input.pptx -o output.txt    # save to file
+```
+
+Handles `AlternateContent` wrappers and `a14:m` containers used by PowerPoint when equations are embedded in text frames.
+
 ## API
 
 ### `convert_omml(node)`

@@ -25,9 +25,8 @@ pip install omml2latex
 ## 파일 구조
 
 - `omml2latex/`: import 가능한 패키지 본체
-- `omml2latex/__init__.py`: 공개 API (`convert_omml`)
+- `omml2latex/__init__.py`: 공개 API (`convert_omml`) 및 CLI 진입점 (`main`)
 - `omml2latex/_parser.py`: OMML 파싱 및 LaTeX 변환 핵심 구현
-- `omml2latex_example.py`: PPTX 파일을 파싱하여 OMML 수식을 찾아내고, 파서를 거쳐 변환된 수식들을 마크다운(MD) 포맷으로 출력하는 예제 스크립트
 - `shared-math-strict.rnc` / `shared-math-strict.xsd` / `shared-math-transitional.xsd`: 파서 작성 시 참고한 ECMA-376 OMML 스키마 문서들
 
 ## 변환 결과 예시
@@ -56,16 +55,16 @@ pip install omml2latex
 
 ## 사용 방법
 
-### 1. `omml2latex_example.py` (CLI 수식 추출기로 사용)
+### 1. CLI 수식 추출기
 
-실제 파워포인트(`.pptx`) 문서를 읽어들여 내부의 모든 수식을 추출한 후, 슬라이드 번호별로 정리된 Markdown 문서를 생성합니다. 외부 라이브러리 추가 설치 없이 파이썬 기본 모듈만으로 동작합니다.
+`.pptx` 또는 `.docx` 파일에서 모든 수식을 추출합니다. `AlternateContent`, `a14:m` 래퍼 등 다양한 OOXML 수식 래핑 방식을 모두 처리합니다.
 
 ```bash
-# 기본 사용법
-python omml2latex_example.py sample.pptx
+# stdout으로 출력
+omml2latex sample.pptx
 
-# 출력 파일명을 직접 지정하는 경우
-python omml2latex_example.py sample.pptx output.md
+# 파일로 저장
+omml2latex sample.pptx -o output.txt
 ```
 
 ### 2. `omml2latex` 패키지 직접 사용 (API)

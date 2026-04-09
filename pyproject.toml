@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "omml2latex"
-version = "0.1.0"
+version = "0.1.1"
 description = "Convert OMML (Office Math Markup Language) elements into LaTeX."
 readme = "README_pypi.md"
 requires-python = ">=3.9"
@@ -27,6 +27,9 @@ classifiers = [
   "Topic :: Text Processing :: Markup :: XML",
 ]
 dependencies = []
+
+[project.scripts]
+omml2latex = "omml2latex:main"
 
 [tool.setuptools]
 include-package-data = false
